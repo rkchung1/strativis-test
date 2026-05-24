@@ -267,8 +267,74 @@
       color: var(--muted);
     }
 
+    /* --- Search, sort, and filter controls --- */
+    .controls {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 16px;
+      margin: 0 0 12px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+      min-width: 0;
+    }
+
+    .controls legend {
+      font-size: 0.875rem;
+      font-weight: 600;
+      padding: 0 4px;
+    }
+
+    .control label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.8125rem;
+      color: var(--muted);
+    }
+
+    .control input,
+    .control select {
+      width: 100%;
+      height: 40px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      line-height: 1.25;
+      box-sizing: border-box;
+    }
+
+    .control input:focus-visible,
+    .control select:focus-visible {
+      outline: 2px solid var(--green);
+      outline-offset: 2px;
+    }
+
+    .result-count {
+      margin: 0 0 16px;
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+
+    .empty-state {
+      margin: 0;
+      padding: 24px;
+      text-align: center;
+      color: var(--muted);
+      background: var(--card);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+    }
+
     /* --- Mobile: stack columns vertically --- */
     @media (max-width: 767px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
       article {
         grid-template-columns: 1fr;
         grid-template-areas: "identity" "score" "summary";
@@ -302,154 +368,139 @@
     <section aria-labelledby="candidates-heading">
       <h2 id="candidates-heading">Screened Candidates</h2>
 
-      <ul class="candidate-list">
-        <li>
-          <article aria-labelledby="candidate-1-name" data-band="high">
-            <div class="candidate-identity">
-              <h3 id="candidate-1-name">Elena Rodriguez</h3>
-              <p class="role">Product Manager</p>
-            </div>
-            <div class="fit-score ai-generated" role="group" aria-label="Fit score: 91 out of 100">
-              <span class="badge badge-ai">
-                <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-                  <path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/>
-                </svg>
-                AI Fit Score
-              </span>
-              <span class="sr-only">Fit score</span>
-              <span class="fit-score__value">91</span>
-              <meter min="0" max="100" low="60" high="80" optimum="100" value="91" aria-hidden="true"></meter>
-            </div>
-            <div class="summary ai-generated" aria-label="AI-generated summary">
-              <span class="badge badge-ai">
-                <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-                  <path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/>
-                </svg>
-                AI Summary
-              </span>
-              <p class="summary__text">Excellent stakeholder communication and roadmap thinking.</p>
-            </div>
-          </article>
-        </li>
+      <fieldset class="controls">
+        <legend>Filter and Sort</legend>
+        <div class="control">
+          <label for="search">Search by name or role</label>
+          <input type="search" id="search" placeholder="e.g. Engineer" autocomplete="off">
+        </div>
+        <div class="control">
+          <label for="sort">Sort by fit score</label>
+          <select id="sort">
+            <option value="score-desc">High to low</option>
+            <option value="score-asc">Low to high</option>
+          </select>
+        </div>
+        <div class="control">
+          <label for="min-score">Minimum fit score</label>
+          <input type="number" id="min-score" min="0" max="100" step="1" placeholder="0">
+        </div>
+      </fieldset>
 
-        <li>
-          <article aria-labelledby="candidate-2-name" data-band="high">
-            <div class="candidate-identity">
-              <h3 id="candidate-2-name">Priya Shah</h3>
-              <p class="role">Frontend Engineer</p>
-            </div>
-            <div class="fit-score ai-generated" role="group" aria-label="Fit score: 87 out of 100">
-              <span class="badge badge-ai">
-                <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-                  <path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/>
-                </svg>
-                AI Fit Score
-              </span>
-              <span class="sr-only">Fit score</span>
-              <span class="fit-score__value">87</span>
-              <meter min="0" max="100" low="60" high="80" optimum="100" value="87" aria-hidden="true"></meter>
-            </div>
-            <div class="summary ai-generated" aria-label="AI-generated summary">
-              <span class="badge badge-ai">
-                <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-                  <path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/>
-                </svg>
-                AI Summary
-              </span>
-              <p class="summary__text">Strong React experience, communicates clearly.</p>
-            </div>
-          </article>
-        </li>
-
-        <li>
-          <article aria-labelledby="candidate-3-name" data-band="medium">
-            <div class="candidate-identity">
-              <h3 id="candidate-3-name">James Okonkwo</h3>
-              <p class="role">Backend Engineer</p>
-            </div>
-            <div class="fit-score ai-generated" role="group" aria-label="Fit score: 74 out of 100">
-              <span class="badge badge-ai">
-                <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-                  <path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/>
-                </svg>
-                AI Fit Score
-              </span>
-              <span class="sr-only">Fit score</span>
-              <span class="fit-score__value">74</span>
-              <meter min="0" max="100" low="60" high="80" optimum="100" value="74" aria-hidden="true"></meter>
-            </div>
-            <div class="summary ai-generated" aria-label="AI-generated summary">
-              <span class="badge badge-ai">
-                <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-                  <path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/>
-                </svg>
-                AI Summary
-              </span>
-              <p class="summary__text">Solid API design skills; limited cloud experience.</p>
-            </div>
-          </article>
-        </li>
-
-        <li>
-          <article aria-labelledby="candidate-4-name" data-band="medium">
-            <div class="candidate-identity">
-              <h3 id="candidate-4-name">Marcus Chen</h3>
-              <p class="role">Data Analyst</p>
-            </div>
-            <div class="fit-score ai-generated" role="group" aria-label="Fit score: 62 out of 100">
-              <span class="badge badge-ai">
-                <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-                  <path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/>
-                </svg>
-                AI Fit Score
-              </span>
-              <span class="sr-only">Fit score</span>
-              <span class="fit-score__value">62</span>
-              <meter min="0" max="100" low="60" high="80" optimum="100" value="62" aria-hidden="true"></meter>
-            </div>
-            <div class="summary ai-generated" aria-label="AI-generated summary">
-              <span class="badge badge-ai">
-                <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-                  <path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/>
-                </svg>
-                AI Summary
-              </span>
-              <p class="summary__text">Some SQL gaps, but solid problem-solving.</p>
-            </div>
-          </article>
-        </li>
-
-        <li>
-          <article aria-labelledby="candidate-5-name" data-band="low">
-            <div class="candidate-identity">
-              <h3 id="candidate-5-name">Sofia Nguyen</h3>
-              <p class="role">UX Designer</p>
-            </div>
-            <div class="fit-score ai-generated" role="group" aria-label="Fit score: 55 out of 100">
-              <span class="badge badge-ai">
-                <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-                  <path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/>
-                </svg>
-                AI Fit Score
-              </span>
-              <span class="sr-only">Fit score</span>
-              <span class="fit-score__value">55</span>
-              <meter min="0" max="100" low="60" high="80" optimum="100" value="55" aria-hidden="true"></meter>
-            </div>
-            <div class="summary ai-generated" aria-label="AI-generated summary">
-              <span class="badge badge-ai">
-                <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-                  <path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/>
-                </svg>
-                AI Summary
-              </span>
-              <p class="summary__text">Strong visual design; portfolio lacks enterprise case studies.</p>
-            </div>
-          </article>
-        </li>
-      </ul>
+      <p class="result-count" id="result-count" aria-live="polite"></p>
+      <p class="empty-state" id="empty-state" hidden>No candidates match your filters.</p>
+      <ul class="candidate-list" id="candidate-list"></ul>
     </section>
   </main>
+
+  <script>
+    (function () {
+      var candidates = [
+        { name: "Elena Rodriguez", role: "Product Manager", fitScore: 91, summary: "Excellent stakeholder communication and roadmap thinking." },
+        { name: "Priya Shah", role: "Frontend Engineer", fitScore: 87, summary: "Strong React experience, communicates clearly." },
+        { name: "James Okonkwo", role: "Backend Engineer", fitScore: 74, summary: "Solid API design skills; limited cloud experience." },
+        { name: "Marcus Chen", role: "Data Analyst", fitScore: 62, summary: "Some SQL gaps, but solid problem-solving." },
+        { name: "Sofia Nguyen", role: "UX Designer", fitScore: 55, summary: "Strong visual design; portfolio lacks enterprise case studies." }
+      ];
+
+      var AI_ICON = '<svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/></svg>';
+
+      var searchInput = document.getElementById("search");
+      var sortSelect = document.getElementById("sort");
+      var minScoreInput = document.getElementById("min-score");
+      var listEl = document.getElementById("candidate-list");
+      var emptyEl = document.getElementById("empty-state");
+      var countEl = document.getElementById("result-count");
+
+      candidates.forEach(function (c) {
+        c.searchText = (c.name + " " + c.role).toLowerCase();
+      });
+
+      function getBand(score) {
+        if (score >= 80) return "high";
+        if (score >= 60) return "medium";
+        return "low";
+      }
+
+      function parseMinScore(value) {
+        if (value === "" || value == null) return 0;
+        var n = Number(value);
+        if (isNaN(n)) return 0;
+        return Math.min(100, Math.max(0, n));
+      }
+
+      function getVisibleCandidates() {
+        var query = searchInput.value.trim().toLowerCase();
+        var minScore = parseMinScore(minScoreInput.value);
+        var sortOrder = sortSelect.value;
+
+        var results = candidates.filter(function (c) {
+          var matchesSearch = !query || c.searchText.indexOf(query) !== -1;
+          var matchesScore = c.fitScore >= minScore;
+          return matchesSearch && matchesScore;
+        });
+
+        results.sort(function (a, b) {
+          return sortOrder === "score-asc" ? a.fitScore - b.fitScore : b.fitScore - a.fitScore;
+        });
+
+        return results;
+      }
+
+      function renderCard(candidate, index) {
+        var id = "candidate-" + index + "-name";
+        var score = candidate.fitScore;
+        var band = getBand(score);
+        var li = document.createElement("li");
+        li.innerHTML =
+          '<article aria-labelledby="' + id + '" data-band="' + band + '">' +
+            '<div class="candidate-identity">' +
+              '<h3 id="' + id + '">' + candidate.name + '</h3>' +
+              '<p class="role">' + candidate.role + '</p>' +
+            '</div>' +
+            '<div class="fit-score ai-generated" role="group" aria-label="Fit score: ' + score + ' out of 100">' +
+              '<span class="badge badge-ai">' + AI_ICON + ' AI Fit Score</span>' +
+              '<span class="sr-only">Fit score</span>' +
+              '<span class="fit-score__value">' + score + '</span>' +
+              '<meter min="0" max="100" low="60" high="80" optimum="100" value="' + score + '" aria-hidden="true"></meter>' +
+            '</div>' +
+            '<div class="summary ai-generated" aria-label="AI-generated summary">' +
+              '<span class="badge badge-ai">' + AI_ICON + ' AI Summary</span>' +
+              '<p class="summary__text">' + candidate.summary + '</p>' +
+            '</div>' +
+          '</article>';
+        return li;
+      }
+
+      function renderList(results) {
+        var fragment = document.createDocumentFragment();
+        results.forEach(function (candidate, i) {
+          fragment.appendChild(renderCard(candidate, i + 1));
+        });
+        listEl.replaceChildren(fragment);
+        emptyEl.hidden = results.length > 0;
+        countEl.textContent = "Showing " + results.length + " of " + candidates.length + " candidates";
+      }
+
+      function update() {
+        renderList(getVisibleCandidates());
+      }
+
+      function debounce(fn, delay) {
+        var timer;
+        return function () {
+          clearTimeout(timer);
+          timer = setTimeout(fn, delay);
+        };
+      }
+
+      searchInput.addEventListener("input", debounce(update, 200));
+      sortSelect.addEventListener("change", update);
+      minScoreInput.addEventListener("input", update);
+
+      update();
+    })();
+  </script>
   <script>
     (function () {
       var storageKey = "candidates-theme";
