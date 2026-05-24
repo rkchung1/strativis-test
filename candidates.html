@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Screened Candidates — HR Dashboard</title>
+  <script>
+    (function () {
+      var saved = localStorage.getItem("candidates-theme");
+      var theme = saved || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <style>
+    /* --- Color palette (light mode) --- */
+    :root {
+      color-scheme: light;
+      --bg: #f4f5f7;
+      --card: #ffffff;
+      --text: #1a1a2e;
+      --muted: #5c5c6f;
+      --border: #e2e4ea;
+      --green: #1a7f4b;
+      --green-bg: #e6f5ed;
+      --amber: #9a6700;
+      --amber-bg: #fef3cd;
+      --red: #b42318;
+      --red-bg: #fde8e8;
+      --ai: #5b5bd6;
+      --ai-bg: #f7f7fe;
+      --ai-border: #d4d4f5;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    /* --- Color palette (dark mode) --- */
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #121218;
+      --card: #1e1e28;
+      --text: #ececf1;
+      --muted: #a0a0b0;
+      --border: #2e2e3a;
+      --green: #4ade80;
+      --green-bg: #1a3d2e;
+      --amber: #fbbf24;
+      --amber-bg: #3d3018;
+      --red: #f87171;
+      --red-bg: #3d1a1a;
+      --ai: #a5b4fc;
+      --ai-bg: #252538;
+      --ai-border: #434360;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    }
+
+    /* --- Page setup --- */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.5;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    /* Hide text visually but keep it for screen readers */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .skip-link {
+      position: absolute;
+      top: -100%;
+      left: 16px;
+      padding: 8px 16px;
+      background: var(--text);
+      color: var(--card);
+      text-decoration: none;
+      border-radius: 8px;
+    }
+
+    .skip-link:focus-visible,
+    .theme-toggle:focus-visible {
+      outline: 2px solid var(--green);
+      outline-offset: 2px;
+    }
+
+    .skip-link:focus-visible { top: 16px; }
+
+    /* --- Header --- */
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 24px 16px;
+    }
+
+    .header__inner {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 1.5rem;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .theme-toggle {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .theme-toggle:hover {
+      background: var(--ai-bg);
+      border-color: var(--ai-border);
+    }
+
+    .theme-toggle svg { width: 18px; height: 18px; }
+    .theme-toggle .icon-sun { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+
+    /* --- Main content --- */
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px 16px 32px;
+    }
+
+    section h2 {
+      margin: 0 0 8px;
+      font-size: 1.125rem;
+    }
+
+    .candidate-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* --- Each candidate card --- */
+    article {
+      display: grid;
+      grid-template-columns: minmax(140px, max-content) auto 1fr;
+      grid-template-areas: "identity score summary";
+      gap: 24px;
+      align-items: center;
+      padding: 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--score-color);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .candidate-identity { grid-area: identity; }
+
+    article h3 {
+      margin: 0 0 8px;
+      font-size: 1.125rem;
+    }
+
+    .role {
+      margin: 0;
+      font-size: 0.8125rem;
+      color: var(--muted);
+    }
+
+    /* Small labels showing who wrote each field */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .badge-ai { color: var(--ai); }
+
+    /* Purple dashed box = AI-generated content */
+    .ai-generated {
+      padding: 8px;
+      background: var(--ai-bg);
+      border: 1px dashed var(--ai-border);
+      border-radius: 6px;
+    }
+
+    /* --- Fit score --- */
+    .fit-score {
+      grid-area: score;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 120px;
+    }
+
+    .fit-score__value {
+      align-self: center;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 1.375rem;
+      font-weight: 800;
+      color: var(--score-color);
+      background: var(--score-bg);
+    }
+
+    article[data-band="high"]   { --score-color: var(--green); --score-bg: var(--green-bg); }
+    article[data-band="medium"] { --score-color: var(--amber); --score-bg: var(--amber-bg); }
+    article[data-band="low"]    { --score-color: var(--red);   --score-bg: var(--red-bg); }
+
+    .fit-score meter {
+      width: 100%;
+      height: 8px;
+      border: none;
+      border-radius: 999px;
+      background: var(--border);
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .fit-score meter::-webkit-meter-bar { background: var(--border); border-radius: 999px; }
+
+    .fit-score meter::-webkit-meter-optimum-value,
+    .fit-score meter::-webkit-meter-suboptimum-value,
+    .fit-score meter::-webkit-meter-even-less-good-value,
+    .fit-score meter::-moz-meter-bar {
+      background: var(--score-color);
+      border-radius: 999px;
+    }
+
+    /* --- Summary --- */
+    .summary {
+      grid-area: summary;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .summary__text {
+      margin: 0;
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+
+    /* --- Mobile: stack columns vertically --- */
+    @media (max-width: 767px) {
+      article {
+        grid-template-columns: 1fr;
+        grid-template-areas: "identity" "score" "summary";
+        gap: 16px;
+      }
+    }
+</style>
+</head>
+<body>
+  <a href="#candidates-heading" class="skip-link">Skip to candidates</a>
+
+  <header>
+    <div class="header__inner">
+      <div>
+        <h1>Screening Dashboard</h1>
+        <p>Candidates who have completed an AI-assisted screening interview.</p>
+      </div>
+      <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch to dark mode" aria-pressed="false">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="5"/>
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section aria-labelledby="candidates-heading">
+      <h2 id="candidates-heading">Screened Candidates</h2>
+
+      <ul class="candidate-list">
+        <li>
+          <article aria-labelledby="candidate-1-name" data-band="high">
+            <div class="candidate-identity">
+              <h3 id="candidate-1-name">Elena Rodriguez</h3>
+              <p class="role">Product Manager</p>
+            </div>
+            <div class="fit-score ai-generated" role="group" aria-label="Fit score: 91 out of 100">
+              <span class="badge badge-ai">
+                <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                  <path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/>
+                </svg>
+                AI Fit Score
+              </span>
+              <span class="sr-only">Fit score</span>
+              <span class="fit-score__value">91</span>
+              <meter min="0" max="100" low="60" high="80" optimum="100" value="91" aria-hidden="true"></meter>
+            </div>
+            <div class="summary ai-generated" aria-label="AI-generated summary">
+              <span class="badge badge-ai">
+                <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                  <path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/>
+                </svg>
+                AI Summary
+              </span>
+              <p class="summary__text">Excellent stakeholder communication and roadmap thinking.</p>
+            </div>
+          </article>
+        </li>
+
+        <li>
+          <article aria-labelledby="candidate-2-name" data-band="high">
+            <div class="candidate-identity">
+              <h3 id="candidate-2-name">Priya Shah</h3>
+              <p class="role">Frontend Engineer</p>
+            </div>
+            <div class="fit-score ai-generated" role="group" aria-label="Fit score: 87 out of 100">
+              <span class="badge badge-ai">
+                <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                  <path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/>
+                </svg>
+                AI Fit Score
+              </span>
+              <span class="sr-only">Fit score</span>
+              <span class="fit-score__value">87</span>
+              <meter min="0" max="100" low="60" high="80" optimum="100" value="87" aria-hidden="true"></meter>
+            </div>
+            <div class="summary ai-generated" aria-label="AI-generated summary">
+              <span class="badge badge-ai">
+                <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                  <path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/>
+                </svg>
+                AI Summary
+              </span>
+              <p class="summary__text">Strong React experience, communicates clearly.</p>
+            </div>
+          </article>
+        </li>
+
+        <li>
+          <article aria-labelledby="candidate-3-name" data-band="medium">
+            <div class="candidate-identity">
+              <h3 id="candidate-3-name">James Okonkwo</h3>
+              <p class="role">Backend Engineer</p>
+            </div>
+            <div class="fit-score ai-generated" role="group" aria-label="Fit score: 74 out of 100">
+              <span class="badge badge-ai">
+                <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                  <path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/>
+                </svg>
+                AI Fit Score
+              </span>
+              <span class="sr-only">Fit score</span>
+              <span class="fit-score__value">74</span>
+              <meter min="0" max="100" low="60" high="80" optimum="100" value="74" aria-hidden="true"></meter>
+            </div>
+            <div class="summary ai-generated" aria-label="AI-generated summary">
+              <span class="badge badge-ai">
+                <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                  <path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/>
+                </svg>
+                AI Summary
+              </span>
+              <p class="summary__text">Solid API design skills; limited cloud experience.</p>
+            </div>
+          </article>
+        </li>
+
+        <li>
+          <article aria-labelledby="candidate-4-name" data-band="medium">
+            <div class="candidate-identity">
+              <h3 id="candidate-4-name">Marcus Chen</h3>
+              <p class="role">Data Analyst</p>
+            </div>
+            <div class="fit-score ai-generated" role="group" aria-label="Fit score: 62 out of 100">
+              <span class="badge badge-ai">
+                <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                  <path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/>
+                </svg>
+                AI Fit Score
+              </span>
+              <span class="sr-only">Fit score</span>
+              <span class="fit-score__value">62</span>
+              <meter min="0" max="100" low="60" high="80" optimum="100" value="62" aria-hidden="true"></meter>
+            </div>
+            <div class="summary ai-generated" aria-label="AI-generated summary">
+              <span class="badge badge-ai">
+                <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                  <path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/>
+                </svg>
+                AI Summary
+              </span>
+              <p class="summary__text">Some SQL gaps, but solid problem-solving.</p>
+            </div>
+          </article>
+        </li>
+
+        <li>
+          <article aria-labelledby="candidate-5-name" data-band="low">
+            <div class="candidate-identity">
+              <h3 id="candidate-5-name">Sofia Nguyen</h3>
+              <p class="role">UX Designer</p>
+            </div>
+            <div class="fit-score ai-generated" role="group" aria-label="Fit score: 55 out of 100">
+              <span class="badge badge-ai">
+                <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                  <path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/>
+                </svg>
+                AI Fit Score
+              </span>
+              <span class="sr-only">Fit score</span>
+              <span class="fit-score__value">55</span>
+              <meter min="0" max="100" low="60" high="80" optimum="100" value="55" aria-hidden="true"></meter>
+            </div>
+            <div class="summary ai-generated" aria-label="AI-generated summary">
+              <span class="badge badge-ai">
+                <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+                  <path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/>
+                </svg>
+                AI Summary
+              </span>
+              <p class="summary__text">Strong visual design; portfolio lacks enterprise case studies.</p>
+            </div>
+          </article>
+        </li>
+      </ul>
+    </section>
+  </main>
+  <script>
+    (function () {
+      var storageKey = "candidates-theme";
+      var root = document.documentElement;
+      var toggle = document.getElementById("theme-toggle");
+
+      function applyTheme(theme) {
+        root.setAttribute("data-theme", theme);
+        toggle.setAttribute(
+          "aria-label",
+          theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+        );
+        toggle.setAttribute("aria-pressed", theme === "dark" ? "true" : "false");
+        localStorage.setItem(storageKey, theme);
+      }
+
+      applyTheme(root.getAttribute("data-theme") || "light");
+
+      toggle.addEventListener("click", function () {
+        var current = root.getAttribute("data-theme");
+        applyTheme(current === "dark" ? "light" : "dark");
+      });
+    })();
+  </script>
+</body>
+</html>
