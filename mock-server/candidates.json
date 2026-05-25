@@ -1,0 +1,151 @@
+[
+  {
+    "id": "c001",
+    "name": "Priya Shah",
+    "role": "Frontend Engineer",
+    "fitScore": 87,
+    "summary": "Strong React experience, communicates clearly. Showed solid CSS fundamentals and asked thoughtful questions about accessibility.",
+    "yearsExperience": 4,
+    "location": "Toronto",
+    "appliedAt": "2026-04-12"
+  },
+  {
+    "id": "c002",
+    "name": "Marcus Chen",
+    "role": "Data Analyst",
+    "fitScore": 62,
+    "summary": "Some SQL gaps, but solid problem-solving. Strong statistics background and Python experience.",
+    "yearsExperience": 2,
+    "location": "Vancouver",
+    "appliedAt": "2026-04-14"
+  },
+  {
+    "id": "c003",
+    "name": "Aisha Bello",
+    "role": "Product Manager",
+    "fitScore": 91,
+    "summary": "Excellent stakeholder examples; strong on prioritization. Has shipped two products from 0 to 1.",
+    "yearsExperience": 6,
+    "location": "London",
+    "appliedAt": "2026-04-15"
+  },
+  {
+    "id": "c004",
+    "name": "Tom Reilly",
+    "role": "Frontend Engineer",
+    "fitScore": 45,
+    "summary": "Limited recent experience; may need ramp-up. Eager and willing to learn but rusty on modern tooling.",
+    "yearsExperience": 1,
+    "location": "Dublin",
+    "appliedAt": "2026-04-17"
+  },
+  {
+    "id": "c005",
+    "name": "Lena Voss",
+    "role": "Backend Engineer",
+    "fitScore": 78,
+    "summary": "Good systems thinking; light on testing background. Strong Go and PostgreSQL skills.",
+    "yearsExperience": 5,
+    "location": "Berlin",
+    "appliedAt": "2026-04-18"
+  },
+  {
+    "id": "c006",
+    "name": "Diego Martinez",
+    "role": "Backend Engineer",
+    "fitScore": 83,
+    "summary": "Great distributed-systems intuition. Clear, concise communicator.",
+    "yearsExperience": 7,
+    "location": "Madrid",
+    "appliedAt": "2026-04-19"
+  },
+  {
+    "id": "c007",
+    "name": "Hana Suzuki",
+    "role": "Frontend Engineer",
+    "fitScore": 71,
+    "summary": "Solid Vue background, transitioning to React. Strong design sense.",
+    "yearsExperience": 3,
+    "location": "Tokyo",
+    "appliedAt": "2026-04-20"
+  },
+  {
+    "id": "c008",
+    "name": "Olu Adebayo",
+    "role": "Data Analyst",
+    "fitScore": 88,
+    "summary": "Outstanding portfolio of dashboards; strong stakeholder management.",
+    "yearsExperience": 4,
+    "location": "Lagos",
+    "appliedAt": "2026-04-21"
+  },
+  {
+    "id": "c009",
+    "name": "Sara Johansson",
+    "role": "Product Manager",
+    "fitScore": 54,
+    "summary": "Some PM experience but mostly in adjacent roles. Strong analytical thinking.",
+    "yearsExperience": 2,
+    "location": "Stockholm",
+    "appliedAt": "2026-04-22"
+  },
+  {
+    "id": "c010",
+    "name": "Karim El-Sayed",
+    "role": "Backend Engineer",
+    "fitScore": 95,
+    "summary": "Exceptional candidate; deep experience scaling Postgres and Kafka. Mentioned several open-source contributions.",
+    "yearsExperience": 8,
+    "location": "Cairo",
+    "appliedAt": "2026-04-23"
+  },
+  {
+    "id": "c011",
+    "name": "Yuki Tanaka",
+    "role": "Frontend Engineer",
+    "fitScore": "70",
+    "summary": "Strong TypeScript skills, knows React Server Components well.",
+    "yearsExperience": 3,
+    "location": "Osaka",
+    "appliedAt": "2026-04-24"
+  },
+  {
+    "id": "c012",
+    "name": "Beatriz Almeida",
+    "role": "Product Manager",
+    "fitScore": 79,
+    "yearsExperience": 5,
+    "location": "Lisbon",
+    "appliedAt": "2026-04-25"
+  },
+  {
+    "id": "c013",
+    "name": "Noah Kim",
+    "role": "Data Analyst",
+    "fitScore": 41,
+    "summary": "Limited experience; primarily academic background.",
+    "yearsExperience": 0,
+    "location": "Seoul",
+    "appliedAt": "2026-04-26"
+  },
+  {
+    "id": "c014",
+    "name": "Fatima Hassan",
+    "role": "Backend Engineer",
+    "fitScore": 86,
+    "summary": "Strong API design experience and security awareness. Asked smart questions about our auth setup.",
+    "yearsExperience": 6,
+    "location": "Dubai",
+    "appliedAt": "2026-04-27"
+  },
+  {
+    "id": "c015",
+    "name": "Eli Rosenberg",
+    "role": "Frontend Engineer",
+    "fitScore": 64,
+    "summary": "Decent React, weaker on CSS. Strong on testing and CI.",
+    "yearsExperience": 3,
+    "location": "Tel Aviv",
+    "appliedAt": "2026-04-28"
+  }
+]

@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Screened Candidates — HR Dashboard</title>
+  <!-- BONUS: Dark mode — apply theme before paint to avoid flash (vanilla JS, no framework) -->
   <script>
     (function () {
       var saved = localStorage.getItem("candidates-theme");
@@ -12,7 +13,7 @@
     })();
   </script>
   <style>
-    /* --- Color palette (light mode) --- */
+    /* BONUS: Dark mode — light palette via CSS custom properties on :root */
     :root {
       color-scheme: light;
       --bg: #f4f5f7;
@@ -32,7 +33,7 @@
       --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     }
 
-    /* --- Color palette (dark mode) --- */
+    /* BONUS: Dark mode — dark palette overrides the same custom properties */
     [data-theme="dark"] {
       color-scheme: dark;
       --bg: #121218;
@@ -120,6 +121,7 @@
       color: var(--muted);
     }
 
+    /* BONUS: Dark mode — toggle button (icon swaps via [data-theme="dark"] below) */
     .theme-toggle {
       width: 40px;
       height: 40px;
@@ -137,6 +139,7 @@
 
     .theme-toggle svg { width: 18px; height: 18px; }
     .theme-toggle .icon-sun { display: none; }
+    /* BONUS: Dark mode — show sun icon in dark theme, moon in light */
     [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
     [data-theme="dark"] .theme-toggle .icon-sun { display: block; }
 
@@ -189,7 +192,7 @@
       color: var(--muted);
     }
 
-    /* Small labels showing who wrote each field */
+    /* BONUS: AI-generated content indicator — badge label + star icon (see appendAiBadge in JS) */
     .badge {
       display: inline-flex;
       align-items: center;
@@ -202,7 +205,7 @@
 
     .badge-ai { color: var(--ai); }
 
-    /* Purple dashed box = AI-generated content */
+    /* BONUS: AI-generated content indicator — dashed border + tint (fit score & summary only) */
     .ai-generated {
       padding: 8px;
       background: var(--ai-bg);
@@ -329,6 +332,54 @@
       border-radius: 8px;
     }
 
+    .api-status {
+      margin: 0 0 16px;
+      font-size: 0.875rem;
+    }
+
+    .api-status--loading {
+      margin: 12px 0 16px;
+      padding: 10px 12px;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--ai);
+      background: var(--ai-bg);
+      border: 1px solid var(--ai-border);
+      border-radius: 8px;
+    }
+
+    .api-status--error {
+      margin: 12px 0 16px;
+      padding: 16px;
+      border: 1px solid var(--red);
+      border-radius: 8px;
+      background: var(--red-bg);
+      color: var(--text);
+    }
+
+    .api-status--error p {
+      margin: 0 0 12px;
+    }
+
+    .api-status--error button {
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .api-status--error button:hover {
+      background: var(--bg);
+    }
+
+    .controls[disabled] {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
     /* --- Mobile: stack columns vertically --- */
     @media (max-width: 767px) {
       .controls {
@@ -352,6 +403,7 @@
         <h1>Screening Dashboard</h1>
         <p>Candidates who have completed an AI-assisted screening interview.</p>
       </div>
+      <!-- BONUS: Dark mode toggle -->
       <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch to dark mode" aria-pressed="false">
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -365,10 +417,10 @@
   </header>
 
   <main>
-    <section aria-labelledby="candidates-heading">
+    <section aria-labelledby="candidates-heading" id="candidates-section">
       <h2 id="candidates-heading">Screened Candidates</h2>
 
-      <fieldset class="controls">
+      <fieldset class="controls" id="controls">
         <legend>Filter and Sort</legend>
         <div class="control">
           <label for="search">Search by name or role</label>
@@ -387,36 +439,114 @@
         </div>
       </fieldset>
 
+      <p class="api-status api-status--loading" id="api-loading" hidden aria-live="polite">Loading candidates…</p>
+      <div class="api-status api-status--error" id="api-error" hidden aria-live="polite">
+        <p id="api-error-message"></p>
+        <button type="button" id="api-retry">Try again</button>
+      </div>
+
       <p class="result-count" id="result-count" aria-live="polite"></p>
       <p class="empty-state" id="empty-state" hidden>No candidates match your filters.</p>
       <ul class="candidate-list" id="candidate-list"></ul>
     </section>
   </main>
 
+  <script src="api-config.local.js"></script>
   <script>
     (function () {
-      var candidates = [
-        { name: "Elena Rodriguez", role: "Product Manager", fitScore: 91, summary: "Excellent stakeholder communication and roadmap thinking." },
-        { name: "Priya Shah", role: "Frontend Engineer", fitScore: 87, summary: "Strong React experience, communicates clearly." },
-        { name: "James Okonkwo", role: "Backend Engineer", fitScore: 74, summary: "Solid API design skills; limited cloud experience." },
-        { name: "Marcus Chen", role: "Data Analyst", fitScore: 62, summary: "Some SQL gaps, but solid problem-solving." },
-        { name: "Sofia Nguyen", role: "UX Designer", fitScore: 55, summary: "Strong visual design; portfolio lacks enterprise case studies." }
-      ];
+      var API_BASE = "http://localhost:4000";
+      var candidates = [];
+      var dataLoaded = false;
 
+      /* BONUS: AI-generated content indicator — icon used in "AI Fit Score" / "AI Summary" badges */
       var AI_ICON = '<svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/></svg>';
 
+      var sectionEl = document.getElementById("candidates-section");
+      var controlsEl = document.getElementById("controls");
       var searchInput = document.getElementById("search");
       var sortSelect = document.getElementById("sort");
       var minScoreInput = document.getElementById("min-score");
       var listEl = document.getElementById("candidate-list");
       var emptyEl = document.getElementById("empty-state");
       var countEl = document.getElementById("result-count");
+      var loadingEl = document.getElementById("api-loading");
+      var errorEl = document.getElementById("api-error");
+      var errorMsgEl = document.getElementById("api-error-message");
+      var retryBtn = document.getElementById("api-retry");
 
-      candidates.forEach(function (c) {
-        c.searchText = (c.name + " " + c.role).toLowerCase();
-      });
+      function setControlsEnabled(enabled) {
+        controlsEl.disabled = !enabled;
+      }
 
-      function getBand(score) {
+      function showLoading() {
+        loadingEl.hidden = false;
+        errorEl.hidden = true;
+        emptyEl.hidden = true;
+        listEl.replaceChildren();
+        countEl.textContent = "";
+        sectionEl.setAttribute("aria-busy", "true");
+        setControlsEnabled(false);
+      }
+
+      function showError(message) {
+        loadingEl.hidden = true;
+        errorEl.hidden = false;
+        errorMsgEl.textContent = message;
+        emptyEl.hidden = true;
+        listEl.replaceChildren();
+        countEl.textContent = "";
+        sectionEl.setAttribute("aria-busy", "false");
+        setControlsEnabled(false);
+        dataLoaded = false;
+      }
+
+      function showSuccess() {
+        loadingEl.hidden = true;
+        errorEl.hidden = true;
+        sectionEl.setAttribute("aria-busy", "false");
+        setControlsEnabled(true);
+        dataLoaded = true;
+      }
+
+      function normalizeCandidate(raw) {
+        var id = raw && raw.id != null ? String(raw.id).trim() : "";
+        if (!id) id = "unknown-" + Math.random().toString(36).slice(2, 9);
+
+        var name = raw && raw.name != null ? String(raw.name).trim() : "";
+        if (!name) name = "Unknown candidate";
+
+        var role = raw && raw.role != null ? String(raw.role).trim() : "";
+        if (!role) role = "Role not provided";
+
+        var fitScoreUnknown = false;
+        var fitScore = 0;
+        if (raw && raw.fitScore != null && raw.fitScore !== "") {
+          var parsed = typeof raw.fitScore === "number" ? raw.fitScore : parseInt(String(raw.fitScore), 10);
+          if (!isNaN(parsed)) {
+            fitScore = Math.min(100, Math.max(0, parsed));
+          } else {
+            fitScoreUnknown = true;
+          }
+        } else {
+          fitScoreUnknown = true;
+        }
+
+        var summary = raw && raw.summary != null ? String(raw.summary).trim() : "";
+        if (!summary) summary = "Summary unavailable.";
+
+        return {
+          id: id,
+          name: name,
+          role: role,
+          fitScore: fitScore,
+          fitScoreUnknown: fitScoreUnknown,
+          summary: summary,
+          searchText: (name + " " + role).toLowerCase()
+        };
+      }
+
+      function getBand(score, unknown) {
+        if (unknown) return "low";
         if (score >= 80) return "high";
         if (score >= 60) return "medium";
         return "low";
@@ -441,41 +571,108 @@
         });
 
         results.sort(function (a, b) {
+          if (a.fitScoreUnknown && b.fitScoreUnknown) return 0;
+          if (a.fitScoreUnknown) return 1;
+          if (b.fitScoreUnknown) return -1;
           return sortOrder === "score-asc" ? a.fitScore - b.fitScore : b.fitScore - a.fitScore;
         });
 
         return results;
       }
 
-      function renderCard(candidate, index) {
-        var id = "candidate-" + index + "-name";
+      /* BONUS: AI-generated content indicator — builds badge + icon on score and summary blocks */
+      function appendAiBadge(parent, label) {
+        var badge = document.createElement("span");
+        badge.className = "badge badge-ai";
+        badge.innerHTML = AI_ICON + " " + label;
+        parent.appendChild(badge);
+      }
+
+      function renderCard(candidate) {
+        var headingId = "candidate-" + candidate.id + "-name";
         var score = candidate.fitScore;
-        var band = getBand(score);
+        var unknown = candidate.fitScoreUnknown;
+        var band = getBand(score, unknown);
+        var scoreLabel = unknown ? "N/A" : String(score);
+        var ariaScore = unknown ? "Fit score not available" : "Fit score: " + score + " out of 100";
+
         var li = document.createElement("li");
-        li.innerHTML =
-          '<article aria-labelledby="' + id + '" data-band="' + band + '">' +
-            '<div class="candidate-identity">' +
-              '<h3 id="' + id + '">' + candidate.name + '</h3>' +
-              '<p class="role">' + candidate.role + '</p>' +
-            '</div>' +
-            '<div class="fit-score ai-generated" role="group" aria-label="Fit score: ' + score + ' out of 100">' +
-              '<span class="badge badge-ai">' + AI_ICON + ' AI Fit Score</span>' +
-              '<span class="sr-only">Fit score</span>' +
-              '<span class="fit-score__value">' + score + '</span>' +
-              '<meter min="0" max="100" low="60" high="80" optimum="100" value="' + score + '" aria-hidden="true"></meter>' +
-            '</div>' +
-            '<div class="summary ai-generated" aria-label="AI-generated summary">' +
-              '<span class="badge badge-ai">' + AI_ICON + ' AI Summary</span>' +
-              '<p class="summary__text">' + candidate.summary + '</p>' +
-            '</div>' +
-          '</article>';
+        var article = document.createElement("article");
+        article.setAttribute("aria-labelledby", headingId);
+        article.setAttribute("data-band", band);
+
+        var identity = document.createElement("div");
+        identity.className = "candidate-identity";
+        var h3 = document.createElement("h3");
+        h3.id = headingId;
+        h3.textContent = candidate.name;
+        var roleP = document.createElement("p");
+        roleP.className = "role";
+        roleP.textContent = candidate.role;
+        identity.appendChild(h3);
+        identity.appendChild(roleP);
+        /* Human-entered: name and role above have no .ai-generated wrapper */
+
+        /* BONUS: AI-generated content indicator — fit score column */
+        var fitScoreDiv = document.createElement("div");
+        fitScoreDiv.className = "fit-score ai-generated";
+        fitScoreDiv.setAttribute("role", "group");
+        fitScoreDiv.setAttribute("aria-label", ariaScore);
+        appendAiBadge(fitScoreDiv, "AI Fit Score");
+        var sr = document.createElement("span");
+        sr.className = "sr-only";
+        sr.textContent = "Fit score";
+        fitScoreDiv.appendChild(sr);
+        var valueSpan = document.createElement("span");
+        valueSpan.className = "fit-score__value";
+        valueSpan.textContent = scoreLabel;
+        fitScoreDiv.appendChild(valueSpan);
+        if (!unknown) {
+          var meter = document.createElement("meter");
+          meter.min = 0;
+          meter.max = 100;
+          meter.low = 60;
+          meter.high = 80;
+          meter.optimum = 100;
+          meter.value = score;
+          meter.setAttribute("aria-hidden", "true");
+          fitScoreDiv.appendChild(meter);
+        }
+
+        /* BONUS: AI-generated content indicator — summary column */
+        var summaryDiv = document.createElement("div");
+        summaryDiv.className = "summary ai-generated";
+        summaryDiv.setAttribute("aria-label", "AI-generated summary");
+        appendAiBadge(summaryDiv, "AI Summary");
+        var summaryP = document.createElement("p");
+        summaryP.className = "summary__text";
+        summaryP.textContent = candidate.summary;
+        summaryDiv.appendChild(summaryP);
+
+        article.appendChild(identity);
+        article.appendChild(fitScoreDiv);
+        article.appendChild(summaryDiv);
+        li.appendChild(article);
+        return li;
+      }
+
+      function renderInvalidCard(raw) {
+        var li = document.createElement("li");
+        var article = document.createElement("article");
+        article.setAttribute("data-band", "low");
+        var p = document.createElement("p");
+        p.className = "summary__text";
+        p.textContent = "Invalid candidate record could not be displayed.";
+        article.appendChild(p);
+        li.appendChild(article);
+        console.warn("Skipped invalid candidate record", raw);
         return li;
       }
 
       function renderList(results) {
         var fragment = document.createDocumentFragment();
-        results.forEach(function (candidate, i) {
-          fragment.appendChild(renderCard(candidate, i + 1));
+        results.forEach(function (candidate) {
+          fragment.appendChild(renderCard(candidate));
         });
         listEl.replaceChildren(fragment);
         emptyEl.hidden = results.length > 0;
@@ -483,6 +680,7 @@
       }
 
       function update() {
+        if (!dataLoaded) return;
         renderList(getVisibleCandidates());
       }
 
@@ -494,13 +692,80 @@
         };
       }
 
+      function friendlyError(status) {
+        if (status === 401) {
+          return "Invalid or missing API key. Check api-config.local.js and mock-server/README.md.";
+        }
+        if (status === 500) {
+          return "The server ran into a problem. Please try again.";
+        }
+        if (status) {
+          return "Could not load candidates (HTTP " + status + ").";
+        }
+        return "Could not reach the server. Make sure the mock API is running at " + API_BASE + ".";
+      }
+
+      function fetchCandidates() {
+        var apiKey = window.CANDIDATES_API_KEY;
+        if (!apiKey || String(apiKey).trim() === "" || apiKey === "your-key-here") {
+          showError("API key not configured. Copy api-config.example.js to api-config.local.js and set your key.");
+          return Promise.resolve();
+        }
+
+        showLoading();
+
+        return fetch(API_BASE + "/v1/candidates", {
+          headers: { "X-API-Key": apiKey }
+        })
+          .then(function (res) {
+            if (!res.ok) {
+              var err = new Error(friendlyError(res.status));
+              err.status = res.status;
+              throw err;
+            }
+            return res.json();
+          })
+          .then(function (payload) {
+            if (!payload || !Array.isArray(payload.data)) {
+              throw new Error("Unexpected response from the server.");
+            }
+            var normalized = [];
+            payload.data.forEach(function (raw) {
+              try {
+                normalized.push(normalizeCandidate(raw));
+              } catch (e) {
+                console.warn("Normalization failed for record", raw, e);
+              }
+            });
+            if (normalized.length === 0 && payload.data.length > 0) {
+              throw new Error("No valid candidate records in the response.");
+            }
+            candidates = normalized;
+            showSuccess();
+            update();
+          })
+          .catch(function (err) {
+            showError(err.message || friendlyError(err.status));
+          });
+      }
+
+      function loadCandidates() {
+        return fetchCandidates();
+      }
+
       searchInput.addEventListener("input", debounce(update, 200));
       sortSelect.addEventListener("change", update);
       minScoreInput.addEventListener("input", update);
+      retryBtn.addEventListener("click", loadCandidates);
 
-      update();
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", loadCandidates);
+      } else {
+        loadCandidates();
+      }
     })();
   </script>
+  <!-- BONUS: Dark mode toggle — click handler + localStorage -->
   <script>
     (function () {
       var storageKey = "candidates-theme";
