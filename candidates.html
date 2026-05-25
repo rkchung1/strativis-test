@@ -27,9 +27,10 @@
       --amber-bg: #fef3cd;
       --red: #b42318;
       --red-bg: #fde8e8;
-      --ai: #5b5bd6;
-      --ai-bg: #f7f7fe;
-      --ai-border: #d4d4f5;
+      --ai: #5ce1e6;
+      --ai-bg: #e8fbfb;
+      --ai-border: #9de8ea;
+      --ai-on: #0a4a4e;
       --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     }
 
@@ -47,9 +48,10 @@
       --amber-bg: #3d3018;
       --red: #f87171;
       --red-bg: #3d1a1a;
-      --ai: #a5b4fc;
-      --ai-bg: #252538;
-      --ai-border: #434360;
+      --ai: #5ce1e6;
+      --ai-bg: #1a3234;
+      --ai-border: #2d6a6e;
+      --ai-on: #0a2527;
       --shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
     }
 
@@ -205,7 +207,7 @@
 
     .badge-ai { color: var(--ai); }
 
-    /* BONUS: AI-generated content indicator — dashed border + tint (fit score & summary only) */
+    /* BONUS: AI-generated content indicator — dashed cyan border + tint (fit score & summary only) */
     .ai-generated {
       padding: 8px;
       background: var(--ai-bg);
@@ -380,6 +382,265 @@
       pointer-events: none;
     }
 
+    /* BONUS: HR chat — FAB + slide-over panel, POST /v1/chat */
+    .bonus-label {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 2px 8px;
+      font-size: 0.625rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      vertical-align: middle;
+      color: var(--ai-on);
+      background: var(--ai);
+      border-radius: 4px;
+    }
+
+    .chat-fab {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 100;
+      width: 56px;
+      height: 56px;
+      border: none;
+      border-radius: 50%;
+      background: var(--ai);
+      color: var(--ai-on);
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chat-fab:hover {
+      filter: brightness(1.08);
+    }
+
+    .chat-fab:focus-visible {
+      outline: 2px solid var(--green);
+      outline-offset: 2px;
+    }
+
+    .chat-fab svg {
+      width: 26px;
+      height: 26px;
+    }
+
+    .chat-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 101;
+      background: rgba(0, 0, 0, 0.45);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+    }
+
+    .chat-backdrop.is-visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .chat-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      z-index: 102;
+      display: flex;
+      flex-direction: column;
+      width: min(400px, 100vw);
+      height: 100%;
+      max-height: 100dvh;
+      padding: 0;
+      background: var(--card);
+      border-left: 1px solid var(--border);
+      box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
+      transform: translateX(100%);
+      visibility: hidden;
+      transition: transform 0.25s ease, visibility 0.25s ease;
+    }
+
+    .chat-panel.is-open {
+      transform: translateX(0);
+      visibility: visible;
+    }
+
+    .chat-panel__header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-shrink: 0;
+      padding: 16px 16px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chat-panel__header h2 {
+      margin: 0;
+      font-size: 1.125rem;
+    }
+
+    .chat-panel__intro {
+      margin: 4px 0 0;
+      font-size: 0.8125rem;
+      color: var(--muted);
+      font-weight: normal;
+    }
+
+    .chat-panel__close {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 1.25rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .chat-panel__close:hover {
+      background: var(--ai-bg);
+      border-color: var(--ai-border);
+    }
+
+    .chat-panel__body {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      padding: 16px;
+    }
+
+    .chat-log {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      margin: 0 0 12px;
+      padding: 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .chat-log:empty::before {
+      content: "Ask about policies, interview summaries, or draft communications.";
+      color: var(--muted);
+      font-size: 0.875rem;
+    }
+
+    .chat-msg {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-width: 90%;
+    }
+
+    .chat-msg--user {
+      align-self: flex-end;
+      text-align: right;
+    }
+
+    .chat-msg--ai {
+      align-self: flex-start;
+    }
+
+    .chat-msg__label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .chat-msg--ai .chat-msg__label {
+      color: var(--ai);
+    }
+
+    .chat-msg__body {
+      margin: 0;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .chat-msg--user .chat-msg__body {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .chat-msg--ai .chat-msg__body {
+      background: var(--ai-bg);
+      border: 1px dashed var(--ai-border);
+      color: var(--text);
+    }
+
+    .chat-thinking {
+      margin: 0 0 12px;
+      padding: 10px 12px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--ai);
+      background: var(--ai-bg);
+      border: 1px solid var(--ai-border);
+      border-radius: 8px;
+    }
+
+    .chat-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+    }
+
+    .chat-form .control {
+      flex: 1 1 200px;
+      min-width: 0;
+      margin: 0;
+    }
+
+    .chat-form button {
+      height: 40px;
+      padding: 8px 20px;
+      border: 1px solid var(--ai-border);
+      border-radius: 8px;
+      background: var(--ai);
+      color: var(--ai-on);
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .chat-form button:hover:not(:disabled) {
+      filter: brightness(1.05);
+    }
+
+    .chat-form button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .chat-error {
+      margin: 12px 0 0;
+      padding: 10px 12px;
+      font-size: 0.875rem;
+      color: var(--text);
+      background: var(--red-bg);
+      border: 1px solid var(--red);
+      border-radius: 8px;
+    }
+
     /* --- Mobile: stack columns vertically --- */
     @media (max-width: 767px) {
       .controls {
@@ -390,6 +651,11 @@
         grid-template-columns: 1fr;
         grid-template-areas: "identity" "score" "summary";
         gap: 16px;
+      }
+
+      .chat-fab {
+        bottom: 16px;
+        right: 16px;
       }
     }
 </style>
@@ -450,6 +716,35 @@
       <ul class="candidate-list" id="candidate-list"></ul>
     </section>
   </main>
+
+  <!-- BONUS: HR chat assistant (Part 4) -->
+  <button type="button" class="chat-fab" id="chat-fab" title="HR Assistant (Bonus)" aria-label="Open HR Assistant chat (Bonus)" aria-expanded="false" aria-controls="chat-panel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+  </button>
+
+  <div class="chat-backdrop" id="chat-backdrop" hidden></div>
+  <aside class="chat-panel" id="chat-panel" role="dialog" aria-labelledby="chat-heading" aria-modal="true" hidden>
+    <div class="chat-panel__header">
+      <div>
+        <h2 id="chat-heading">HR Assistant <span class="bonus-label">Bonus</span></h2>
+        <p class="chat-panel__intro">Bonus feature · AI-generated — verify before acting.</p>
+      </div>
+      <button type="button" class="chat-panel__close" id="chat-close" aria-label="Close HR Assistant chat (Bonus)">×</button>
+    </div>
+    <div class="chat-panel__body">
+      <div class="chat-log" id="chat-log" role="log" aria-live="polite" aria-relevant="additions"></div>
+      <p class="chat-thinking" id="chat-thinking" hidden aria-live="polite">AI is thinking…</p>
+      <p class="chat-error" id="chat-error" hidden role="alert"></p>
+      <form class="chat-form" id="chat-form">
+        <div class="control">
+          <input type="text" id="chat-input" placeholder="Ask Assistant" autocomplete="off">
+        </div>
+        <button type="submit" id="chat-send">Send</button>
+      </form>
+    </div>
+  </aside>
 
   <script src="api-config.local.js"></script>
   <script>
@@ -763,6 +1058,147 @@
       } else {
         loadCandidates();
       }
+    })();
+  </script>
+  <!-- BONUS: HR chat — wired to POST /v1/chat -->
+  <script>
+    (function () {
+      var API_BASE = "http://localhost:4000";
+      var AI_ICON = '<svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8L6 0Z"/></svg>';
+
+      var fab = document.getElementById("chat-fab");
+      var panel = document.getElementById("chat-panel");
+      var backdrop = document.getElementById("chat-backdrop");
+      var closeBtn = document.getElementById("chat-close");
+      var form = document.getElementById("chat-form");
+      var input = document.getElementById("chat-input");
+      var sendBtn = document.getElementById("chat-send");
+      var logEl = document.getElementById("chat-log");
+      var thinkingEl = document.getElementById("chat-thinking");
+      var errorEl = document.getElementById("chat-error");
+      var chatBusy = false;
+      var panelOpen = false;
+
+      function openChat() {
+        if (panelOpen) return;
+        panelOpen = true;
+        backdrop.hidden = false;
+        panel.hidden = false;
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            backdrop.classList.add("is-visible");
+            panel.classList.add("is-open");
+          });
+        });
+        fab.setAttribute("aria-expanded", "true");
+        document.body.style.overflow = "hidden";
+        input.focus();
+      }
+
+      function closeChat() {
+        if (!panelOpen) return;
+        panelOpen = false;
+        backdrop.classList.remove("is-visible");
+        panel.classList.remove("is-open");
+        fab.setAttribute("aria-expanded", "false");
+        document.body.style.overflow = "";
+        fab.focus();
+      }
+
+      function onPanelTransitionEnd(e) {
+        if (e.target !== panel || e.propertyName !== "transform" || panelOpen) return;
+        panel.hidden = true;
+        backdrop.hidden = true;
+      }
+
+      panel.addEventListener("transitionend", onPanelTransitionEnd);
+      fab.addEventListener("click", openChat);
+      closeBtn.addEventListener("click", closeChat);
+      backdrop.addEventListener("click", closeChat);
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && panelOpen) closeChat();
+      });
+
+      function scrollChatToEnd() {
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      function setChatBusy(busy) {
+        chatBusy = busy;
+        thinkingEl.hidden = !busy;
+        input.disabled = busy;
+        sendBtn.disabled = busy;
+        if (busy) errorEl.hidden = true;
+      }
+
+      function appendMessage(role, text) {
+        var wrap = document.createElement("div");
+        wrap.className = "chat-msg chat-msg--" + role;
+
+        var label = document.createElement("span");
+        label.className = "chat-msg__label" + (role === "ai" ? " badge badge-ai" : "");
+        if (role === "ai") {
+          label.innerHTML = AI_ICON + " AI Assistant";
+        } else {
+          label.textContent = "You";
+        }
+
+        var body = document.createElement("p");
+        body.className = "chat-msg__body";
+        body.textContent = text;
+
+        wrap.appendChild(label);
+        wrap.appendChild(body);
+        logEl.appendChild(wrap);
+        scrollChatToEnd();
+      }
+
+      function showChatError(message) {
+        errorEl.textContent = message;
+        errorEl.hidden = false;
+      }
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        if (chatBusy) return;
+
+        var text = input.value.trim();
+        if (!text) return;
+
+        appendMessage("user", text);
+        input.value = "";
+        setChatBusy(true);
+
+        fetch(API_BASE + "/v1/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text })
+        })
+          .then(function (res) {
+            return res.json().then(function (data) {
+              if (!res.ok) {
+                var err = new Error(data && data.error ? data.error : "Chat request failed.");
+                err.status = res.status;
+                throw err;
+              }
+              return data;
+            });
+          })
+          .then(function (data) {
+            var reply = data && data.reply ? String(data.reply) : "No response from the assistant.";
+            appendMessage("ai", reply);
+          })
+          .catch(function (err) {
+            showChatError(
+              err.message ||
+                "Could not reach the assistant. Make sure the mock server is running."
+            );
+          })
+          .finally(function () {
+            setChatBusy(false);
+            input.focus();
+          });
+      });
     })();
   </script>
   <!-- BONUS: Dark mode toggle — click handler + localStorage -->

@@ -1,6 +1,6 @@
 # Screening Dashboard
 
-A static HR screening dashboard (`candidates.html`) for reviewing AI-assisted interview candidates. The page loads data from a local mock API, then supports client-side search, sort, and minimum fit-score filtering.
+A static HR screening dashboard for reviewing AI-assisted interview candidates. The page loads data from a local mock API, then supports client-side search, sort, and minimum fit-score filtering. Mock HR Assistant chat.
 
 ## How to run
 
@@ -21,13 +21,13 @@ The server listens on **http://localhost:4000**. See [mock-server/README.md](moc
 
 ### 2. Configure the API key (local only)
 
-The candidates API requires an `X-API-Key` header. **Do not commit real keys.**
+The candidates API requires an `X-API-Key` header.
 
 ```bash
 cp api-config.example.js api-config.local.js
 ```
 
-Set `window.CANDIDATES_API_KEY` in `api-config.local.js` to the dev key from the mock-server README (`dev-local-key-1234`). This file is gitignored.
+Set `window.CANDIDATES_API_KEY` in `api-config.local.js` to the dev key from the mock-server README. This file is gitignored.
 
 ### 3. Open the dashboard
 
@@ -47,17 +47,13 @@ You should see JSON with a `data` array. The dashboard should show ~15 candidate
 
 ## Design choices
 
-### Static HTML, no build step
-
-The UI is a single HTML file with embedded CSS and vanilla JavaScript. That keeps the project easy to open and review without a bundler or framework.
-
 ### API key via `api-config.local.js`
 
 Browsers cannot read `.env` files directly. For local development, a small gitignored JS file sets `window.CANDIDATES_API_KEY`. In production, the key would live in server-side environment variables and requests would go through a backend proxy so the key never reaches the client. The local file only prevents committing secrets to the repo; it does not hide the key from the browser.
 
 ### One fetch, client-side filters
 
-The mock API supports optional `?role=` filtering on the server. Search by name/role, sort by fit score, and minimum score threshold are implemented in the browser after a single `GET /v1/candidates`. That matches the API surface for this exercise and keeps filtering instant once data is loaded.
+The mock API supports optional `?role=` filtering on the server. Search by name/role, sort by fit score, and minimum score threshold are implemented in the browser after a single `GET /v1/candidates`. That matches the API surface and keeps filtering instant once data is loaded.
 
 ### Defensive normalization
 
@@ -73,20 +69,22 @@ Candidate name, role, and summary are inserted with `textContent` / `createEleme
 
 ### Visual hierarchy for screening
 
-Fit score is emphasized. AI-generated fields use dashed purple styling and "AI Fit Score" / "AI Summary" badges so recruiters can distinguish machine output from identity fields (name, role). The default sort is high-to-low fit score.
+Fit score is emphasized. Bonus: AI-generated fields use dashed cyan accent styling and "AI Fit Score" / "AI Summary" badges so recruiters can distinguish machine output from identity fields (name, role). The default sort is high-to-low fit score.
 
 ### Dark mode
 
 Theme preference is stored in `localStorage` and respects `prefers-color-scheme` on first visit.
+
+### HR chat assistant
+
+`POST /v1/chat` with `{ "message": "..." }` — no API key. Chat opens from a FAB (floating action button) in a slide-over panel (backdrop click, ×, or Escape to close). The UI shows “AI is thinking…” while waiting, labels user messages as You and assistant replies as AI Assistant. Occasional 503 errors display an error banner; send again to retry.
 
 ---
 
 ## What I’d improve with more time
 
 - **Backend proxy** — Serve the dashboard and proxy `/v1/candidates` so the API key stays server-side; add user authentication for a real HR deployment.
-- **Progressive score loading** — If fit scores were generated slowly by an LLM, render candidates immediately and fill in scores asynchronously instead of blocking the whole page.
 - **Server-side search and pagination** — For large candidate lists, debounced search and filters should hit the API with query params instead of loading everything into memory.
-- **Chat integration (Part 4)** — Wire `POST /v1/chat` with scoped context, PII redaction, and clear “AI draft” labeling; never send full candidate records from the browser unchecked.
 - **Tests** — Unit tests for `normalizeCandidate()` and filter/sort logic, smoke test for fetch error handling.
 
 ---
@@ -127,7 +125,7 @@ To handle inconsistent data sent from the API I validate the response shape and 
 
 No I would not block the page since a load time that long is significant. I would render the candidates immediately and have the fit score appear once available by fetching them asynchronously.
 
-### Part 4
+### Part 4 (Bonus — HR chat & AI product questions)
 
 1. Trust and accuracy. LLMs occasionally produce incorrect or made-up information. For an HR tool, what UI or product decisions would you make to reduce the risk of users acting on a wrong answer? Give at least two concrete ideas.
 
@@ -153,3 +151,17 @@ No I would not block the page since a load time that long is significant. I woul
 5. Pushback. A product manager asks you to add a feature that auto-rejects candidates whose fitScore is below 40, without HR review. Walk through how you'd respond — technically, ethically, and as a teammate.
 
 - I’d push back at the idea because ethically I don’t think a single score that an LLM has created should decide whether a candidate is reviewed. As an alternative I’d suggest using the score as a way to prioritize certain applicants. Something interesting to look into would be keeping track of candidates that would be auto-rejected and comparing them against whether they were actually rejected by HR. If there is a strong enough correlation we could look into implementing something similar, but at the end of the day I believe every applicant should have the chance to be reviewed by a human.
+
+## AI Usage
+
+I wrote or decided myself:
+
+- Visual hierarchy of candidate cards
+- Debounce logic
+- Filter logic
+- Security choices (textContent, API key approach)
+- Inconsitent data handling
+_ Error handling
+- Final UI/UX choices
+
+Majority of the code was written by AI assistants using Cursor but was thoroughly reviewed every step of the way.
