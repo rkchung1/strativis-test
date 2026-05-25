@@ -161,7 +161,7 @@ I wrote or decided myself:
 - Filter logic
 - Security choices (textContent, API key approach)
 - Inconsitent data handling
-_ Error handling
+- Error handling
 - Final UI/UX choices
 
 Majority of the code was written by AI assistants using Cursor but was thoroughly reviewed every step of the way.
