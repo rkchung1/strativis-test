@@ -383,20 +383,6 @@
     }
 
     /* BONUS: HR chat — FAB + slide-over panel, POST /v1/chat */
-    .bonus-label {
-      display: inline-block;
-      margin-left: 6px;
-      padding: 2px 8px;
-      font-size: 0.625rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      vertical-align: middle;
-      color: var(--ai-on);
-      background: var(--ai);
-      border-radius: 4px;
-    }
-
     .chat-fab {
       position: fixed;
       bottom: 24px;
@@ -718,7 +704,7 @@
   </main>
 
   <!-- BONUS: HR chat assistant (Part 4) -->
-  <button type="button" class="chat-fab" id="chat-fab" title="HR Assistant (Bonus)" aria-label="Open HR Assistant chat (Bonus)" aria-expanded="false" aria-controls="chat-panel">
+  <button type="button" class="chat-fab" id="chat-fab" aria-label="Open HR Assistant" aria-expanded="false" aria-controls="chat-panel">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
     </svg>
@@ -728,10 +714,10 @@
   <aside class="chat-panel" id="chat-panel" role="dialog" aria-labelledby="chat-heading" aria-modal="true" hidden>
     <div class="chat-panel__header">
       <div>
-        <h2 id="chat-heading">HR Assistant <span class="bonus-label">Bonus</span></h2>
-        <p class="chat-panel__intro">Bonus feature · AI-generated — verify before acting.</p>
+        <h2 id="chat-heading">HR Assistant</h2>
+        <p class="chat-panel__intro">AI-generated — verify before acting.</p>
       </div>
-      <button type="button" class="chat-panel__close" id="chat-close" aria-label="Close HR Assistant chat (Bonus)">×</button>
+      <button type="button" class="chat-panel__close" id="chat-close" aria-label="Close HR Assistant">×</button>
     </div>
     <div class="chat-panel__body">
       <div class="chat-log" id="chat-log" role="log" aria-live="polite" aria-relevant="additions"></div>

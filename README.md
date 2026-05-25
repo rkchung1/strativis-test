@@ -65,7 +65,7 @@ Candidate name, role, and summary are inserted with `textContent` / `createEleme
 
 ### Error states
 
-- Network failures, HTTP 401/500, and invalid JSON show a message and "Try again" below the same area. This is separate from the filter empty state (“No candidates match your filters.”).
+Network failures, HTTP 401/500, and invalid JSON show a message and "Try again" below the same area. This is separate from the filter empty state (“No candidates match your filters.”).
 
 ### Visual hierarchy for screening
 
@@ -77,15 +77,16 @@ Theme preference is stored in `localStorage` and respects `prefers-color-scheme`
 
 ### HR chat assistant
 
-`POST /v1/chat` with `{ "message": "..." }` — no API key. Chat opens from a FAB (floating action button) in a slide-over panel (backdrop click, ×, or Escape to close). The UI shows “AI is thinking…” while waiting, labels user messages as You and assistant replies as AI Assistant. Occasional 503 errors display an error banner; send again to retry.
+Chat opens from a FAB (floating action button) in a slide-over panel (backdrop click, ×, or Escape to close). The UI shows “AI is thinking…” while waiting, labels user messages as You and assistant replies as AI Assistant. Occasional 503 errors display an error banner, send again to retry.
 
 ---
 
 ## What I’d improve with more time
 
-- **Backend proxy** — Serve the dashboard and proxy `/v1/candidates` so the API key stays server-side; add user authentication for a real HR deployment.
-- **Server-side search and pagination** — For large candidate lists, debounced search and filters should hit the API with query params instead of loading everything into memory.
-- **Tests** — Unit tests for `normalizeCandidate()` and filter/sort logic, smoke test for fetch error handling.
+- Backend proxy with user auth
+- Server-side search and pagination
+- Detail view feature
+- Unit Testing for logic
 
 ---
 
